@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+
+  <cron>
+    <url>/mainServlet?action=cron&amp;interval=5</url>
+    <schedule>every 5 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 5 minutes</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron>
+  <cron>
+    <url>/mainServlet?action=cron&amp;interval=10</url>
+    <schedule>every 10 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 10 minutes</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron>
+  <cron>
+    <url>/mainServlet?action=cron&amp;interval=15</url>
+    <schedule>every 15 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 15 minutes</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron>
+  <cron>
+    <url>/mainServlet?action=cron&amp;interval=20</url>
+    <schedule>every 20 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 20 minutes</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron>
+  <cron>
+    <url>/mainServlet?action=cron&amp;interval=30</url>
+    <schedule>every 30 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 30 minutes</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron>
+  <cron>
+    <url>/mainServlet?action=cron&amp;interval=60</url>
+    <schedule>every 60 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 600 minutes</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron>
+  <cron>
+    <url>/mainServlet?action=cron&amp;interval=420</url>
+    <schedule>every 420 minutes from 16:15 to 23:15</schedule>
+    <description>runs every 420 minutes</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron>
+  
+<!--   <cron>
+    <url>/mainServlet?action=cron&amp;interval=5</url>
+    <schedule>every 1 minutes</schedule>
+    <description>runs every 1 minutes- TESTING</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron> -->
+</cronentries>
