@@ -3,8 +3,8 @@
 
   <cron>
     <url>/mainServlet?action=cron&amp;interval=1</url>
-    <schedule>every 1 minutes from 8:45 to 16:15</schedule>
-    <description>runs every 1 minutes</description>
+    <schedule>every 5 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 5 minutes</description>
     <timezone>Asia/Kolkata</timezone>
   </cron>
   <cron>
