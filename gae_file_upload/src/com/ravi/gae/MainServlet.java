@@ -107,7 +107,8 @@ public class MainServlet extends HttpServlet {
 		Blob image = myImage.getImage();
 
 		resp.setContentType("image/jpeg");
-		resp.setHeader("Content-Disposition", "attachment;filename="+myImage.getName());
+		//resp.setHeader("Content-Disposition", "attachment;filename="+myImage.getName());
+		resp.setHeader("Content-Disposition", "inline;filename="+myImage.getName());
 		resp.getOutputStream().write(image.getBytes());
 		
 		resp.getOutputStream().flush();
