@@ -2,6 +2,19 @@
 <cronentries>
 
   <cron>
+    <url>/mainServlet?action=cron&amp;interval=1</url>
+    <schedule>every 1 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 1 minutes</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron>
+  <cron>
+    <url>/mainServlet?action=cron&amp;interval=3</url>
+    <schedule>every 3 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 3 minutes</description>
+    <timezone>Asia/Kolkata</timezone>
+  </cron>
+<!-- less than 5 are no longer downloaded -->
+  <cron>
     <url>/mainServlet?action=cron&amp;interval=5</url>
     <schedule>every 5 minutes from 8:45 to 16:15</schedule>
     <description>runs every 5 minutes</description>

@@ -11,7 +11,7 @@ import javax.persistence.Id;
 import com.google.appengine.api.datastore.Blob;
 
 @PersistenceCapable
-public class MyImage {
+public class MyImage2Name {
 	@Id
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
@@ -21,26 +21,14 @@ public class MyImage {
     private String name;
 
     @Persistent
-    Blob image;
-    
-    @Persistent
     Date date;
 
-    public MyImage() { }
+    public MyImage2Name() { }
     
-    public MyImage(String name, Blob image) {
+    public MyImage2Name(String name) {
         this.name = name; 
-        this.image = image;
         this.date = new Date();
     }
-
-	public Blob getImage() {
-		return image;
-	}
-
-	public void setImage(Blob image) {
-		this.image = image;
-	}
 
 	public String getName() {
 		return name;

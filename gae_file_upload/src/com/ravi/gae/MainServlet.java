@@ -66,6 +66,9 @@ public class MainServlet extends HttpServlet {
 			case "zipFiles":
 				zipFiles(resp, filter);
 				break;
+			case "zipAll":
+				zip(resp, null);
+				break;
 			default:
 				break;
 		}
@@ -94,13 +97,13 @@ public class MainServlet extends HttpServlet {
 
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 				"transactions-optional").getPersistenceManager();
-		Query query = pm.newQuery(MyImage.class);
+		Query query = pm.newQuery(MyImage2.class);
 		query.setFilter("name == nameParam");
 		query.declareParameters("String nameParam");
-		List<MyImage> images = (List<MyImage>) query.execute(name);
+		List<MyImage2> images = (List<MyImage2>) query.execute(name);
 		pm.close();
 		
-		MyImage myImage = images.iterator().next();
+		MyImage2 myImage = images.iterator().next();
 		Blob image = myImage.getImage();
 
 		resp.setContentType("image/jpeg");
@@ -116,12 +119,12 @@ public class MainServlet extends HttpServlet {
 
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 				"transactions-optional").getPersistenceManager();
-		Query query = pm.newQuery(MyImage.class);
+		Query query = pm.newQuery(MyImage2Name.class);
 		query.setOrdering("this.date descending");
-		List<MyImage> muImages = (List<MyImage>) query.execute();
+		List<MyImage2Name> muImages = (List<MyImage2Name>) query.execute();
 		pm.close();
 
-		for (MyImage myImage : muImages) {
+		for (MyImage2Name myImage : muImages) {
 			resp.getOutputStream().print(
 					"<a href='mainServlet?action=showImage&name="
 							+ myImage.getName()+"'>" + myImage.getName()+ "</a>"
@@ -155,10 +158,13 @@ public class MainServlet extends HttpServlet {
 		try {
 			PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 					"transactions-optional").getPersistenceManager();
+			
+			
 			for (ImageUrls imageUrl : MainServlet.imageUrls) {
 
-				if ((interval == 5 && interval >= imageUrl.getIntervalInt())
-						|| interval == imageUrl.getIntervalInt()) {
+//				if ((interval == 5 && interval >= imageUrl.getIntervalInt())
+//						|| interval == imageUrl.getIntervalInt()) {
+				if (interval == imageUrl.getIntervalInt()) {
 
 					InputStream inputStream = new URL(imageUrl.getUrl())
 							.openStream();
@@ -167,9 +173,13 @@ public class MainServlet extends HttpServlet {
 					String imgaeName = sday + smonth + " " + year + " " + shour
 							+ " " + sminute + " " + imageUrl.getName() + ".png";
 
-					MyImage myImage = new MyImage(imgaeName, imageBlob);
+					MyImage2 myImage = new MyImage2(imgaeName, imageBlob);
 
 					pm.makePersistent(myImage);
+					
+					MyImage2Name myImageName = new MyImage2Name(imgaeName);
+
+					pm.makePersistent(myImageName);
 				}
 			}
 			pm.close();
@@ -185,18 +195,18 @@ public class MainServlet extends HttpServlet {
 	
 	private void zip(HttpServletResponse resp, String filter) throws IOException {
 	    resp.setContentType("application/zip");
-	    resp.setHeader("Content-Disposition", "attachment;filename="+filter+".zip");
+	    resp.setHeader("Content-Disposition", "attachment;filename="+(filter==null?"fullzip":filter)+".zip");
 	    
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 				"transactions-optional").getPersistenceManager();
-		Query query = pm.newQuery(MyImage.class);
-		List<MyImage> myImages = (List<MyImage>) query.execute();
+		Query query = pm.newQuery(MyImage2.class);
+		List<MyImage2> myImages = (List<MyImage2>) query.execute();
 		pm.close();
 		
 		try (ZipOutputStream out = new ZipOutputStream(resp.getOutputStream())) {
 			int count=0;
-			for (MyImage myImage : myImages) {
-				if(myImage.getName().contains(filter)){
+			for (MyImage2 myImage : myImages) {
+				if(filter==null || myImage.getName().contains(filter)){
 					
 					String zipFileName=myImage.getName();
 					int indexOfExtention= zipFileName.indexOf(".");
@@ -230,11 +240,11 @@ public class MainServlet extends HttpServlet {
 	    
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 				"transactions-optional").getPersistenceManager();
-		Query query = pm.newQuery(MyImage.class);
-		List<MyImage> myImages = (List<MyImage>) query.execute();
+		Query query = pm.newQuery(MyImage2.class);
+		List<MyImage2> myImages = (List<MyImage2>) query.execute();
 		pm.close();
 		
-		for (MyImage myImage : myImages) {
+		for (MyImage2 myImage : myImages) {
 			if(myImage.getName().contains(filter)){
 				resp.getOutputStream().print(
 						"<a href='mainServlet?action=showImage&name="
@@ -252,6 +262,8 @@ public class MainServlet extends HttpServlet {
 		resp.getOutputStream().flush();
 		resp.getOutputStream().close();
 	}
+	
+
 	
 	private static void loadImageUrls() {
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
