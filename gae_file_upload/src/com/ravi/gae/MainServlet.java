@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +34,10 @@ public class MainServlet extends HttpServlet {
 	
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
+		
+		if(imageUrls==null){
+			loadImageUrls();
+		}
 
 		String action = req.getParameter("action");
 		String name = req.getParameter("name");
@@ -75,6 +80,8 @@ public class MainServlet extends HttpServlet {
 
 	}
 
+	//need to encode it before passing this way
+	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=addImageUrl&imagename=5min&imageurl=http%3A%2F%2Fquotes.esignal.com%2Fesignalprod%2F%2Fesigchartspon%3Fcont%3D%2524NIFTY-NSE%26period%3DV%26varminutes%3D5%26size%3D1345x550%26bartype%3DCANDLE%26bardensity%3DMEDIUM%26STUDY%3DEMA%26STUDY0%3D20%26STUDY1%3D20%26STUDY2%3D20%26showextendednames%3Dtrue&imageinterval=5
 	private void storeimageurl(HttpServletResponse resp, String imageName,
 			String imageUrl, String imageInterval) throws IOException {
 		try {
@@ -92,6 +99,7 @@ public class MainServlet extends HttpServlet {
 		resp.getOutputStream().close();
 	}
 
+	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=showImage&name=18Dec%202015%2013%2051%203min%20nifty.png
 	private void imageFor(HttpServletResponse resp, String name)
 			throws IOException {
 
@@ -115,6 +123,7 @@ public class MainServlet extends HttpServlet {
 		resp.getOutputStream().close();
 	}
 
+	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=listImages
 	private void list(HttpServletResponse resp) throws IOException {
 		resp.setContentType("text/html");
 
@@ -136,6 +145,7 @@ public class MainServlet extends HttpServlet {
 		resp.getOutputStream().close();
 	}
 	
+	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=cron&interval=5
 	private void storeimage(HttpServletResponse resp, int interval) throws IOException {
 
 		Calendar calendar = Calendar.getInstance(TimeZone
@@ -156,73 +166,108 @@ public class MainServlet extends HttpServlet {
 		String sminute = minute < 10 ? "0" + minute : "" + minute;
 		String ssecond = second < 10 ? "0" + second : "" + second;
 		
-		try {
-			PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
-					"transactions-optional").getPersistenceManager();
+		for (ImageUrls imageUrl : MainServlet.imageUrls) {
+			int count=0;
+			boolean isProcesssed=false;
 			
-			
-			for (ImageUrls imageUrl : MainServlet.imageUrls) {
-
-//				if ((interval == 5 && interval >= imageUrl.getIntervalInt())
-//						|| interval == imageUrl.getIntervalInt()) {
-				if (interval == imageUrl.getIntervalInt()) {
-
-					InputStream inputStream = new URL(imageUrl.getUrl())
-							.openStream();
-					Blob imageBlob = new Blob(IOUtils.toByteArray(inputStream));
-
-					String imgaeName = sday + smonth + " " + year + " " + shour
-							+ " " + sminute + " " + imageUrl.getName() + ".png";
-
-					MyImage2 myImage = new MyImage2(imgaeName, imageBlob);
-
-					pm.makePersistent(myImage);
+			while (count < 3 && !isProcesssed) {
+				
+				PersistenceManager pm = JDOHelper
+						.getPersistenceManagerFactory(
+								"transactions-optional")
+						.getPersistenceManager();
+				try {
+					count++;
+					// if ((interval == 5 && interval >=
+					// imageUrl.getIntervalInt())
+					// || interval == imageUrl.getIntervalInt()) {
 					
-					MyImage2Name myImageName = new MyImage2Name(imgaeName);
+					if (interval == imageUrl.getIntervalInt()) {
+						InputStream inputStream = new URL(imageUrl.getUrl())
+								.openStream();
+						Blob imageBlob = new Blob(
+								IOUtils.toByteArray(inputStream));
 
-					pm.makePersistent(myImageName);
+						String imgaeName = sday + smonth + " " + year + " "
+								+ shour + " " + sminute + " "
+								+ imageUrl.getName() + " "+ count +".png";
+
+						MyImage2 myImage = new MyImage2(imgaeName, imageBlob);
+						pm.makePersistent(myImage);
+
+						MyImage2Name myImageName = new MyImage2Name(imgaeName);
+						pm.makePersistent(myImageName);
+					}
+					
+					isProcesssed = true;
+				} catch (Exception e) {
+					e.printStackTrace();
+					isProcesssed = false;
+				} finally {
+					pm.close();
 				}
-			}
-			pm.close();
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+			}//end while
+		}// end for
 		
 		resp.getOutputStream().print("success");
 		resp.getOutputStream().flush();
 		resp.getOutputStream().close();
 	}
 	
+	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=zip&filter=18Dec
+	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=zip
 	private void zip(HttpServletResponse resp, String filter) throws IOException {
 	    resp.setContentType("application/zip");
 	    resp.setHeader("Content-Disposition", "attachment;filename="+(filter==null?"fullzip":filter)+".zip");
 	    
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 				"transactions-optional").getPersistenceManager();
-		Query query = pm.newQuery(MyImage2.class);
-		List<MyImage2> myImages = (List<MyImage2>) query.execute();
+		Query query = pm.newQuery(MyImage2Name.class);
+		List<MyImage2Name> myImage2Names = (List<MyImage2Name>) query.execute();
 		pm.close();
 		
 		try (ZipOutputStream out = new ZipOutputStream(resp.getOutputStream())) {
-			int count=0;
-			for (MyImage2 myImage : myImages) {
-				if(filter==null || myImage.getName().contains(filter)){
+			//int count=0;
+			
+			for (MyImage2Name myImage2Name : myImage2Names) {
+				
+				List<String> filters= Arrays.asList(filter.split(" "));
+
+				boolean flag=true;
+				for(String str: filters){
+					if(!myImage2Name.getName().contains(str)){
+						flag=false;
+						break;
+					}
+				}
+				
+				if(filter==null || flag){
 					
-					String zipFileName=myImage.getName();
-					int indexOfExtention= zipFileName.indexOf(".");
+					pm = JDOHelper.getPersistenceManagerFactory(
+							"transactions-optional").getPersistenceManager();
 					
-					if(indexOfExtention==-1){
+					Query query2 = pm.newQuery(MyImage2.class);
+					query.setFilter("name == nameParam");
+					query.declareParameters("String nameParam");
+					List<MyImage2> images = (List<MyImage2>) query2.execute(myImage2Name.getName());
+					pm.close();
+					
+					System.gc();
+					
+					String zipFileName= myImage2Name.getName();
+					//int indexOfExtention= zipFileName.indexOf(".");
+					
+					/*if(indexOfExtention==-1){
 						zipFileName= zipFileName+ " "+count++;
 					} else {
 						zipFileName= zipFileName.substring(0, indexOfExtention)+" "+count++ +zipFileName.substring(indexOfExtention, zipFileName.length());
-					}
+					}*/
 					
 					ZipEntry e = new ZipEntry(zipFileName);
 					e.setTime(new Date().getTime());
 					
 			        out.putNextEntry(e);
-			        byte[] bytes = myImage.getImage().getBytes();
+			        byte[] bytes = images.get(0).getImage().getBytes();
 			        out.write(bytes, 0, bytes.length);
 			        out.closeEntry();
 
@@ -232,24 +277,43 @@ public class MainServlet extends HttpServlet {
 			
 	    } catch (Exception e) {
 	    	e.printStackTrace();
+	    } finally {
+	    	try{
+	    		pm.close();
+	    	}catch(Exception e){
+	    	}
 	    }
 	    
 	}
 	
+	// list of files & url at end- action=zip
+	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=zipFiles&filter=18Dec
 	private void zipFiles(HttpServletResponse resp, String filter) throws IOException {
 	    resp.setContentType("text/html");
 	    
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 				"transactions-optional").getPersistenceManager();
-		Query query = pm.newQuery(MyImage2.class);
-		List<MyImage2> myImages = (List<MyImage2>) query.execute();
+		Query query = pm.newQuery(MyImage2Name.class);
+		List<MyImage2Name> myImage2Names = (List<MyImage2Name>) query.execute();
+		query.setOrdering("this.name descending");
 		pm.close();
 		
-		for (MyImage2 myImage : myImages) {
-			if(myImage.getName().contains(filter)){
+		for (MyImage2Name myImage2Name : myImage2Names) {
+			
+			List<String> filters= Arrays.asList(filter.split(" "));
+
+			boolean flag=true;
+			for(String str: filters){
+				if(!myImage2Name.getName().contains(str)){
+					flag=false;
+					break;
+				}
+			}
+			
+			if(filter==null || flag){
 				resp.getOutputStream().print(
 						"<a href='mainServlet?action=showImage&name="
-								+ myImage.getName()+"'>" + myImage.getName() + "</a>"
+								+ myImage2Name.getName()+"'>" + myImage2Name.getName() + "</a>"
 								+ "<br>");
 			}
 		}
@@ -264,14 +328,17 @@ public class MainServlet extends HttpServlet {
 		resp.getOutputStream().close();
 	}
 	
-
-	
+	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=refresh
 	private static void loadImageUrls() {
-		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
-				"transactions-optional").getPersistenceManager();
-		Query query = pm.newQuery(ImageUrls.class);
-		query.setOrdering("this.interval ascending");
-		imageUrls = (List<ImageUrls>) query.execute();
-		pm.close();
+		try{
+			PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
+					"transactions-optional").getPersistenceManager();
+			Query query = pm.newQuery(ImageUrls.class);
+			query.setOrdering("this.interval ascending");
+			imageUrls = (List<ImageUrls>) query.execute();
+			pm.close();
+		} catch(Exception e){
+			imageUrls= null;
+		}
 	}
 }
