@@ -3,6 +3,7 @@ package com.ravi.gae;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -172,7 +173,7 @@ public class MainServlet extends HttpServlet {
 			else
 				resp.getOutputStream().print(prefix+
 						"/mainServlet?action=showImage&name="
-								+ myImage.getName()+("Y".equalsIgnoreCase(delete)?"&delete=Y":"")+ "<br>");
+								+ URLEncoder.encode(myImage.getName())+("Y".equalsIgnoreCase(delete)?"&delete=Y":"")+ "<br>");
 		}
 		
 		resp.getOutputStream().flush();
@@ -356,16 +357,18 @@ public class MainServlet extends HttpServlet {
 			}
 			
 			if(filter==null || flag){
-				if(!"Y".equalsIgnoreCase(showurl))
+				if(!"Y".equalsIgnoreCase(showurl)){
 					resp.getOutputStream().print(
 							"<a href='mainServlet?action=showImage&name="
 									+ myImage2Name.getName()+"'>" + myImage2Name.getName() + "</a>"
 									+ "<br>");
+				}
 				
-				else
+				else {
 					resp.getOutputStream().print(prefix+
 							"/mainServlet?action=showImage&name="
-									+ myImage2Name.getName()+("Y".equalsIgnoreCase(delete)?"&delete=Y":"")+ "<br>");
+									+ URLEncoder.encode(myImage2Name.getName())+("Y".equalsIgnoreCase(delete)?"&delete=Y":"")+ "<br>");
+				}
 			}
 		}
 		
