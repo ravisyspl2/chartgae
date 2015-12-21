@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
 
-  <cron>
+  <!-- <cron>
     <url>/mainServlet?action=cron&amp;interval=1</url>
     <schedule>every 210 minutes from 8:45 to 16:15</schedule>
     <description>runs every 210 minutes</description>
@@ -12,9 +12,9 @@
     <schedule>every 210 minutes from 8:45 to 16:15</schedule>
     <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
-  </cron>
+  </cron> -->
 <!-- less than 5 are no longer downloaded -->
-  <cron>
+  <!-- <cron>
     <url>/mainServlet?action=cron&amp;interval=5</url>
     <schedule>every 210 minutes from 8:45 to 16:15</schedule>
     <description>runs every 210 minutes</description>
@@ -49,7 +49,7 @@
     <schedule>every 210 minutes from 8:45 to 16:15</schedule>
     <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
-  </cron>
+  </cron> -->
   <cron>
     <url>/mainServlet?action=cron&amp;interval=420</url>
     <schedule>every 420 minutes from 16:15 to 23:15</schedule>

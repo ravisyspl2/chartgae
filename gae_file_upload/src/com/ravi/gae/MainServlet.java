@@ -24,6 +24,15 @@ import org.apache.commons.io.IOUtils;
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.FetchOptions;
 
+
+/*
+1-dot-newproject7dec2015
+newproject7dec2015- old
+sr214dec- new
+
+now all task are run at 420 interval
+
+ */
 @SuppressWarnings("serial")
 public class MainServlet extends HttpServlet {
 	
@@ -46,21 +55,23 @@ public class MainServlet extends HttpServlet {
 		String name = req.getParameter("name");
 		String interval= req.getParameter("interval");
 		int iinterval = interval == null ? 0 : Integer.valueOf(interval);
-		String imageName= req.getParameter("imagename");// URL
-		String imageUrl= req.getParameter("imageurl");// URL
-		String imageInterval= req.getParameter("imageinterval");//30 URL
+		String imageName= req.getParameter("imagename");// insert URL
+		String imageUrl= req.getParameter("imageurl");// insert URL- should be escaped
+		String imageInterval= req.getParameter("imageinterval");//420 insert URL
 		String filter= req.getParameter("filter");//15Dec
 		
 		String showurl= req.getParameter("showurl");//Y
-		String prefix= req.getParameter("prefix");//http://1-dot-newproject7dec2015.appspot.com
+		String prefix= req.getParameter("prefix");//http://sr214dec.appspot.com
+		
+		String delete= req.getParameter("delete");//Y
 		
 		switch (action) {
 		
 			case "listImages":
-				list(resp,showurl,prefix);
+				list(resp,showurl,prefix,delete);
 				break;
 			case "showImage":
-				imageFor(resp, name);
+				imageFor(resp, name,delete);
 				break;
 			case "cron":
 				storeimage(resp, iinterval);
@@ -75,7 +86,7 @@ public class MainServlet extends HttpServlet {
 				zip(resp, filter);
 				break;
 			case "zipFiles":
-				zipFiles(resp, filter,showurl,prefix);
+				zipFiles(resp, filter,showurl,prefix,delete);
 				break;
 			case "zipAll":
 				zip(resp, null);
@@ -87,7 +98,7 @@ public class MainServlet extends HttpServlet {
 	}
 
 	//need to encode it before passing this way
-	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=addImageUrl&imagename=5min&imageurl=http%3A%2F%2Fquotes.esignal.com%2Fesignalprod%2F%2Fesigchartspon%3Fcont%3D%2524NIFTY-NSE%26period%3DV%26varminutes%3D5%26size%3D1345x550%26bartype%3DCANDLE%26bardensity%3DMEDIUM%26STUDY%3DEMA%26STUDY0%3D20%26STUDY1%3D20%26STUDY2%3D20%26showextendednames%3Dtrue&imageinterval=5
+	//http://sr214dec.appspot.com/mainServlet?action=addImageUrl&imagename=5min&imageurl=http%3A%2F%2Fquotes.esignal.com%2Fesignalprod%2F%2Fesigchartspon%3Fcont%3D%2524NIFTY-NSE%26period%3DV%26varminutes%3D5%26size%3D1345x550%26bartype%3DCANDLE%26bardensity%3DMEDIUM%26STUDY%3DEMA%26STUDY0%3D20%26STUDY1%3D20%26STUDY2%3D20%26showextendednames%3Dtrue&imageinterval=5
 	private void storeimageurl(HttpServletResponse resp, String imageName,
 			String imageUrl, String imageInterval) throws IOException {
 		try {
@@ -105,8 +116,10 @@ public class MainServlet extends HttpServlet {
 		resp.getOutputStream().close();
 	}
 
-	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=showImage&name=18Dec%202015%2013%2051%203min%20nifty.png
-	private void imageFor(HttpServletResponse resp, String name)
+	//http://sr214dec.appspot.com/mainServlet?action=showImage&name=18Dec%202015%2013%2051%203min%20nifty.png
+	//http://sr214dec.appspot.com/mainServlet?action=showImage&name=21Dec 2015 21 24 1min 1.png&delete=Y
+	//DELETE DOES NOT WORK
+	private void imageFor(HttpServletResponse resp, String name, String delete)
 			throws IOException {
 
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
@@ -128,11 +141,18 @@ public class MainServlet extends HttpServlet {
 		
 		resp.getOutputStream().flush();
 		resp.getOutputStream().close();
+		
+		if("Y".equalsIgnoreCase(delete)){
+			PersistenceManager pm2 = JDOHelper.getPersistenceManagerFactory(
+					"transactions-optional").getPersistenceManager();
+			pm2.deletePersistent(myImage);
+			pm2.close();
+		}
 	}
 
-	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=listImages
-	
-	private void list(HttpServletResponse resp, String showurl, String prefix) throws IOException {
+	//http://sr214dec.appspot.com/mainServlet?action=listImages
+	//http://sr214dec.appspot.com/mainServlet?action=listImages&showurl=Y&prefix=http://sr214dec.appspot.com&delete=Y
+	private void list(HttpServletResponse resp, String showurl, String prefix,String delete) throws IOException {
 		resp.setContentType("text/html");
 
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
@@ -144,7 +164,7 @@ public class MainServlet extends HttpServlet {
 		pm.close();
 
 		for (MyImage2Name myImage : muImages) {
-			if("Y".equalsIgnoreCase(showurl))
+			if(!"Y".equalsIgnoreCase(showurl))
 				resp.getOutputStream().print(
 						"<a href='mainServlet?action=showImage&name="
 								+ myImage.getName()+"'>" + myImage.getName()+ "</a>"
@@ -152,14 +172,14 @@ public class MainServlet extends HttpServlet {
 			else
 				resp.getOutputStream().print(prefix+
 						"/mainServlet?action=showImage&name="
-								+ myImage.getName()+ "<br>");
+								+ myImage.getName()+("Y".equalsIgnoreCase(delete)?"&delete=Y":"")+ "<br>");
 		}
 		
 		resp.getOutputStream().flush();
 		resp.getOutputStream().close();
 	}
 	
-	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=cron&interval=5
+	//http://sr214dec.appspot.com/mainServlet?action=cron&interval=5
 	private void storeimage(HttpServletResponse resp, int interval) throws IOException {
 
 		Calendar calendar = Calendar.getInstance(TimeZone
@@ -168,14 +188,19 @@ public class MainServlet extends HttpServlet {
 
 		int year = calendar.get(Calendar.YEAR);
 		int month = calendar.get(Calendar.MONTH);
-		int day = calendar.get(Calendar.DATE);
+		int date = calendar.get(Calendar.DATE);
 		int hour = calendar.get(Calendar.HOUR_OF_DAY);
 		int minute = calendar.get(Calendar.MINUTE);
 		int second = calendar.get(Calendar.SECOND);
 		
+		int day = calendar.get(Calendar.DAY_OF_WEEK);
+		
+		if(day==Calendar.SUNDAY || day== Calendar.SATURDAY)
+			return;
+		
 		//String smonth= month<10?"0"+month:""+month;
 		String smonth = new SimpleDateFormat("MMM").format(calendar.getTime());
-		String sday = day < 10 ? "0" + day : "" + day;
+		String sday = date < 10 ? "0" + date : "" + date;
 		String shour = hour < 10 ? "0" + hour : "" + hour;
 		String sminute = minute < 10 ? "0" + minute : "" + minute;
 		String ssecond = second < 10 ? "0" + second : "" + second;
@@ -228,8 +253,8 @@ public class MainServlet extends HttpServlet {
 		resp.getOutputStream().close();
 	}
 	
-	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=zip&filter=18Dec
-	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=zip
+	//http://sr214dec.appspot.com/mainServlet?action=zip&filter=18Dec
+	//http://sr214dec.appspot.com/mainServlet?action=zip
 	//FIXME
 	//FAILS due to logic & huge size
 	private void zip(HttpServletResponse resp, String filter) throws IOException {
@@ -305,8 +330,9 @@ public class MainServlet extends HttpServlet {
 	}
 	
 	// list of files & url at end- action=zip
-	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=zipFiles&filter=18Dec
-	private void zipFiles(HttpServletResponse resp, String filter,String showurl, String prefix) throws IOException {
+	//http://sr214dec.appspot.com/mainServlet?action=zipFiles&filter=18Dec
+	//http://sr214dec.appspot.com/mainServlet?action=zipFiles&filter=18Dec&showurl=Y&prefix=http://sr214dec.appspot.com&delete=Y
+	private void zipFiles(HttpServletResponse resp, String filter,String showurl, String prefix,String delete) throws IOException {
 	    resp.setContentType("text/html");
 	    
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
@@ -330,7 +356,7 @@ public class MainServlet extends HttpServlet {
 			}
 			
 			if(filter==null || flag){
-				if("Y".equalsIgnoreCase(showurl))
+				if(!"Y".equalsIgnoreCase(showurl))
 					resp.getOutputStream().print(
 							"<a href='mainServlet?action=showImage&name="
 									+ myImage2Name.getName()+"'>" + myImage2Name.getName() + "</a>"
@@ -339,7 +365,7 @@ public class MainServlet extends HttpServlet {
 				else
 					resp.getOutputStream().print(prefix+
 							"/mainServlet?action=showImage&name="
-									+ myImage2Name.getName()+ "<br>");
+									+ myImage2Name.getName()+("Y".equalsIgnoreCase(delete)?"&delete=Y":"")+ "<br>");
 			}
 		}
 		
@@ -353,7 +379,7 @@ public class MainServlet extends HttpServlet {
 		resp.getOutputStream().close();
 	}
 	
-	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=refresh
+	//http://sr214dec.appspot.com/mainServlet?action=refresh
 	private static void loadImageUrls() {
 		try{
 			PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
