@@ -3,51 +3,51 @@
 
   <cron>
     <url>/mainServlet?action=cron&amp;interval=1</url>
-    <schedule>every 5 minutes from 8:45 to 16:15</schedule>
-    <description>runs every 5 minutes</description>
+    <schedule>every 210 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
   </cron>
   <cron>
     <url>/mainServlet?action=cron&amp;interval=3</url>
-    <schedule>every 3 minutes from 8:45 to 16:15</schedule>
-    <description>runs every 3 minutes</description>
+    <schedule>every 210 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
   </cron>
 <!-- less than 5 are no longer downloaded -->
   <cron>
     <url>/mainServlet?action=cron&amp;interval=5</url>
-    <schedule>every 5 minutes from 8:45 to 16:15</schedule>
-    <description>runs every 5 minutes</description>
+    <schedule>every 210 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
   </cron>
   <cron>
     <url>/mainServlet?action=cron&amp;interval=10</url>
-    <schedule>every 10 minutes from 8:45 to 16:15</schedule>
-    <description>runs every 10 minutes</description>
+    <schedule>every 210 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
   </cron>
   <cron>
     <url>/mainServlet?action=cron&amp;interval=15</url>
-    <schedule>every 15 minutes from 8:45 to 16:15</schedule>
-    <description>runs every 15 minutes</description>
+    <schedule>every 210 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
   </cron>
   <cron>
     <url>/mainServlet?action=cron&amp;interval=20</url>
-    <schedule>every 20 minutes from 8:45 to 16:15</schedule>
-    <description>runs every 20 minutes</description>
+    <schedule>every 210 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
   </cron>
   <cron>
     <url>/mainServlet?action=cron&amp;interval=30</url>
-    <schedule>every 30 minutes from 8:45 to 16:15</schedule>
-    <description>runs every 30 minutes</description>
+    <schedule>every 210 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
   </cron>
   <cron>
     <url>/mainServlet?action=cron&amp;interval=60</url>
-    <schedule>every 60 minutes from 8:45 to 16:15</schedule>
-    <description>runs every 600 minutes</description>
+    <schedule>every 210 minutes from 8:45 to 16:15</schedule>
+    <description>runs every 210 minutes</description>
     <timezone>Asia/Kolkata</timezone>
   </cron>
   <cron>

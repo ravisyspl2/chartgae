@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 
 import com.google.appengine.api.datastore.Blob;
+import com.google.appengine.api.datastore.FetchOptions;
 
 @SuppressWarnings("serial")
 public class MainServlet extends HttpServlet {
@@ -35,23 +36,28 @@ public class MainServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		
+		System.gc();
+		
 		if(imageUrls==null){
 			loadImageUrls();
 		}
 
-		String action = req.getParameter("action");
+		String action = req.getParameter("action");//listImages
 		String name = req.getParameter("name");
 		String interval= req.getParameter("interval");
 		int iinterval = interval == null ? 0 : Integer.valueOf(interval);
-		String imageName= req.getParameter("imagename");
-		String imageUrl= req.getParameter("imageurl");
-		String imageInterval= req.getParameter("imageinterval");
-		String filter= req.getParameter("filter");
+		String imageName= req.getParameter("imagename");// URL
+		String imageUrl= req.getParameter("imageurl");// URL
+		String imageInterval= req.getParameter("imageinterval");//30 URL
+		String filter= req.getParameter("filter");//15Dec
+		
+		String showurl= req.getParameter("showurl");//Y
+		String prefix= req.getParameter("prefix");//http://1-dot-newproject7dec2015.appspot.com
 		
 		switch (action) {
 		
 			case "listImages":
-				list(resp);
+				list(resp,showurl,prefix);
 				break;
 			case "showImage":
 				imageFor(resp, name);
@@ -69,7 +75,7 @@ public class MainServlet extends HttpServlet {
 				zip(resp, filter);
 				break;
 			case "zipFiles":
-				zipFiles(resp, filter);
+				zipFiles(resp, filter,showurl,prefix);
 				break;
 			case "zipAll":
 				zip(resp, null);
@@ -108,6 +114,7 @@ public class MainServlet extends HttpServlet {
 		Query query = pm.newQuery(MyImage2.class);
 		query.setFilter("name == nameParam");
 		query.declareParameters("String nameParam");
+		query.getFetchPlan().setFetchSize(1000);
 		List<MyImage2> images = (List<MyImage2>) query.execute(name);
 		pm.close();
 		
@@ -124,21 +131,28 @@ public class MainServlet extends HttpServlet {
 	}
 
 	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=listImages
-	private void list(HttpServletResponse resp) throws IOException {
+	
+	private void list(HttpServletResponse resp, String showurl, String prefix) throws IOException {
 		resp.setContentType("text/html");
 
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 				"transactions-optional").getPersistenceManager();
 		Query query = pm.newQuery(MyImage2Name.class);
+		query.getFetchPlan().setFetchSize(1000);
 		query.setOrdering("this.date descending");
 		List<MyImage2Name> muImages = (List<MyImage2Name>) query.execute();
 		pm.close();
 
 		for (MyImage2Name myImage : muImages) {
-			resp.getOutputStream().print(
-					"<a href='mainServlet?action=showImage&name="
-							+ myImage.getName()+"'>" + myImage.getName()+ "</a>"
-							+ "<br>");
+			if("Y".equalsIgnoreCase(showurl))
+				resp.getOutputStream().print(
+						"<a href='mainServlet?action=showImage&name="
+								+ myImage.getName()+"'>" + myImage.getName()+ "</a>"
+								+ "<br>");
+			else
+				resp.getOutputStream().print(prefix+
+						"/mainServlet?action=showImage&name="
+								+ myImage.getName()+ "<br>");
 		}
 		
 		resp.getOutputStream().flush();
@@ -216,6 +230,8 @@ public class MainServlet extends HttpServlet {
 	
 	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=zip&filter=18Dec
 	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=zip
+	//FIXME
+	//FAILS due to logic & huge size
 	private void zip(HttpServletResponse resp, String filter) throws IOException {
 	    resp.setContentType("application/zip");
 	    resp.setHeader("Content-Disposition", "attachment;filename="+(filter==null?"fullzip":filter)+".zip");
@@ -223,6 +239,7 @@ public class MainServlet extends HttpServlet {
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 				"transactions-optional").getPersistenceManager();
 		Query query = pm.newQuery(MyImage2Name.class);
+		query.getFetchPlan().setFetchSize(1000);
 		List<MyImage2Name> myImage2Names = (List<MyImage2Name>) query.execute();
 		pm.close();
 		
@@ -249,6 +266,7 @@ public class MainServlet extends HttpServlet {
 					Query query2 = pm.newQuery(MyImage2.class);
 					query.setFilter("name == nameParam");
 					query.declareParameters("String nameParam");
+					query.getFetchPlan().setFetchSize(1000);
 					List<MyImage2> images = (List<MyImage2>) query2.execute(myImage2Name.getName());
 					pm.close();
 					
@@ -288,12 +306,13 @@ public class MainServlet extends HttpServlet {
 	
 	// list of files & url at end- action=zip
 	//http://1-dot-newproject7dec2015.appspot.com/mainServlet?action=zipFiles&filter=18Dec
-	private void zipFiles(HttpServletResponse resp, String filter) throws IOException {
+	private void zipFiles(HttpServletResponse resp, String filter,String showurl, String prefix) throws IOException {
 	    resp.setContentType("text/html");
 	    
 		PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 				"transactions-optional").getPersistenceManager();
 		Query query = pm.newQuery(MyImage2Name.class);
+		query.getFetchPlan().setFetchSize(1000);
 		List<MyImage2Name> myImage2Names = (List<MyImage2Name>) query.execute();
 		query.setOrdering("this.name descending");
 		pm.close();
@@ -311,18 +330,24 @@ public class MainServlet extends HttpServlet {
 			}
 			
 			if(filter==null || flag){
-				resp.getOutputStream().print(
-						"<a href='mainServlet?action=showImage&name="
-								+ myImage2Name.getName()+"'>" + myImage2Name.getName() + "</a>"
-								+ "<br>");
+				if("Y".equalsIgnoreCase(showurl))
+					resp.getOutputStream().print(
+							"<a href='mainServlet?action=showImage&name="
+									+ myImage2Name.getName()+"'>" + myImage2Name.getName() + "</a>"
+									+ "<br>");
+				
+				else
+					resp.getOutputStream().print(prefix+
+							"/mainServlet?action=showImage&name="
+									+ myImage2Name.getName()+ "<br>");
 			}
 		}
 		
-		resp.getOutputStream().print("<br>");
+/*		resp.getOutputStream().print("<br>");
 		resp.getOutputStream().print(
 				"<a href='mainServlet?action=zip&filter="
 						+ filter+"'>Download above files in zip</a>"
-						+ "<br>");
+						+ "<br>");*/
 		
 		resp.getOutputStream().flush();
 		resp.getOutputStream().close();
@@ -334,6 +359,7 @@ public class MainServlet extends HttpServlet {
 			PersistenceManager pm = JDOHelper.getPersistenceManagerFactory(
 					"transactions-optional").getPersistenceManager();
 			Query query = pm.newQuery(ImageUrls.class);
+			query.getFetchPlan().setFetchSize(1000);
 			query.setOrdering("this.interval ascending");
 			imageUrls = (List<ImageUrls>) query.execute();
 			pm.close();
